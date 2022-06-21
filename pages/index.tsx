@@ -1,14 +1,13 @@
 import type { NextPage } from 'next'
 import Head from 'next/head'
-import Image from 'next/image'
 import { Form, Button } from 'react-bootstrap'
 import React from 'react'
-import { getEnglishWord, addWord, Result, getNumberOfWords } from '../library/api/querys'
+import { translateWord, getNumberOfWords, Translation, TranslationResult } from '../library/api/querys'
 import NavbarComponent from '../componets/navbar'
 
 const Home: NextPage = () => {
 	const [searchedWord, setSearchedWord] = React.useState<string>("")
-	const [translatedWord, setTranslatedWord] = React.useState<Result | null>(null)
+	const [translatedWord, setTranslatedWord] = React.useState<TranslationResult | null>(null)
     const [numberOfWords, setNumberOfWords] = React.useState<number | null>(null)
 
     const translateInput = React.useRef<HTMLInputElement | null>()
@@ -18,44 +17,42 @@ const Home: NextPage = () => {
             .then(number => setNumberOfWords(number))
     }, [])
 
-	const translateWord = async (): Promise<void> => {
-		let result = await getEnglishWord(searchedWord)
+	const translateWordCallback = async (): Promise<void> => {
+		let result = await translateWord("es", searchedWord)
+
+        if (result.existsInDB == false) {
+            setNumberOfWords(numberOfWords + 1)
+        }
 
 		setTranslatedWord(result)
 	}
 
-    const saveWord = async (): Promise<void> => {
-        if (translatedWord?.englishWord && translatedWord.spanishWord) {
-            addWord(translatedWord?.englishWord, translatedWord?.spanishWord)
-                .then(() => {
-                    if (numberOfWords) {
-                        setNumberOfWords(numberOfWords + 1)
-                    }
-
-                    setTranslatedWord(null)
-                    setSearchedWord("")
-
-                    if (translateInput.current) {
-                        translateInput.current.focus()
-                    }
-                })
-        }
-    }
-
     const NumberOfWordsElement = () => {
         return numberOfWords ?
-            <div style={localStyles.numberOfWords}>There are {numberOfWords} words in the database!</div>
+            <div style={localStyles.numberOfWords}>{numberOfWords} different words have been translated!</div>
             :
             null
+    }
+
+    const Translations = () => {
+        if (translatedWord) {
+            return translatedWord.queryResult.translations.map(translation => {
+                return <li key={translation.displayTarget}>{translation.displayTarget}</li>
+            })
+        }
     }
 
 	const TranslatedWordElement = () => {
 		return translatedWord ?
 			<div>
-                <div>{translatedWord.englishWord}</div>
+                <div>The posible translations are:</div>
+                <ul>
+                    {Translations()}
+                </ul>
+                
                 {
-                    translatedWord.existsInDB == false ?
-                        <Button onClick={saveWord}>Save word</Button>
+                    translatedWord.existsInDB == true ?
+                        <div>This word has already been searched</div>
                         :
                         null
                 }
@@ -80,7 +77,7 @@ const Home: NextPage = () => {
 				<Form onSubmit={
                     ev => {
                         ev.preventDefault()
-                        translateWord()
+                        translateWordCallback()
                     } 
                 }>
 					<Form.Group className="mb-3" controlId="formBasicEmail">
@@ -90,11 +87,17 @@ const Home: NextPage = () => {
 							value={searchedWord}
                             ref={translateInput}
 							onChange={ev => setSearchedWord(ev.target.value)}
+                            autoComplete="off"
 							autoFocus
 						/>
 					</Form.Group>
 
-					<Button variant="primary" type="submit">Translate</Button>
+					<Button variant="primary" type="submit" style={localStyles.translateButton}>Translate</Button>
+                    <Button variant="primary" type="button" onClick={() => {
+                        setSearchedWord("")
+                        setTranslatedWord(null)
+                        translateInput.current.focus()
+                    }}>Clear</Button>
 
 					<TranslatedWordElement />
 				</Form>
@@ -112,6 +115,10 @@ const localStyles = {
         marginTop: "20px",
         paddingLeft: "20px",
         paddingRight: "20px"
+    },
+
+    translateButton: {
+        marginRight: "10px"
     }
 }
 

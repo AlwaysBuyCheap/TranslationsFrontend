@@ -1,30 +1,53 @@
 import React from "react"
 import Head from 'next/head'
 import { NextPage } from "next"
-import { Result, getRandomWord } from '../library/api/querys'
+import { getRandomWord, QueryResult, TranslationResult } from '../library/api/querys'
 import { Form, Button } from 'react-bootstrap'
 import NavbarComponent from "../componets/navbar"
 
 const Test: NextPage = () => {
-    const [randomWord, setRandomWord] = React.useState<Result | null>(null)
-    const [translatedWord, setTranslatedWord] = React.useState<string>("")
+    const [randomWord, setRandomWord] = React.useState<QueryResult | null>(null)
+    const [answer, setAnswer] = React.useState<string>("")
     const [solved, setSolved] = React.useState<boolean>(false)
 
     const translateInput = React.useRef<HTMLInputElement | null>()
 
     React.useEffect(() => {
-        getRandomWord()
+        getRandomWord("es")
             .then(result => setRandomWord(result))
     }, [])
+
+    const checkIfAnswerIsCorrect = (): boolean => {
+        for (const translation of randomWord?.translations) {
+            if (translation.displayTarget == answer) {
+                return true
+            }
+        }
+
+        return false
+    }
+
+    const getAllTranslations = (): string => {
+        let translations = ""
+
+        for (const translation of randomWord?.translations) {
+            translations += ` ${translation.displayTarget}, `
+        }
+
+        return translations
+    }
 
     const Solution = () => {
         return solved && randomWord ?
             <div>
                 {
-                    randomWord.englishWord.toLocaleLowerCase() == translatedWord.toLocaleLowerCase() ?
-                        <div>Congratulations your answer is correct!</div>
+                    checkIfAnswerIsCorrect() ?
+                        <>
+                            <div>Congratulations your answer is correct!</div>
+                            <div>All the possible answers are {getAllTranslations()}</div>
+                        </>
                         :
-                        <div>Your answer is wrong, the correct translation is {randomWord?.englishWord}</div>
+                        <div>Your answer is wrong, the correct translations are {getAllTranslations()}</div>
                 }
             </div>
             :
@@ -32,12 +55,12 @@ const Test: NextPage = () => {
     }
 
     const getNewWord = () => {
-        getRandomWord()
+        getRandomWord("es")
             .then(result => {
                 setRandomWord(result)
                 setSolved(false)
-                setTranslatedWord("")
-
+                setAnswer("")
+                console.log(randomWord)
                 if (translateInput.current) {
                     translateInput.current.focus()
                 }
@@ -55,7 +78,7 @@ const Test: NextPage = () => {
             <NavbarComponent />
 
             <main style={localStyles.mainElement}>
-                <div>How is {randomWord?.spanishWord} spelled in english?</div>
+                <div>How is {randomWord?.displaySource} spelled in english?</div>
 
                 <Form onSubmit={
                     ev => {
@@ -66,9 +89,10 @@ const Test: NextPage = () => {
                     <Form.Control
                         type="text"
                         placeholder="Guess word"
-                        value={translatedWord}
+                        value={answer}
                         ref={translateInput}
-                        onChange={ev => setTranslatedWord(ev.target.value)}
+                        onChange={ev => setAnswer(ev.target.value)}
+                        autoComplete="off"
                         autoFocus
                     />
 

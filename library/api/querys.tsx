@@ -1,9 +1,18 @@
 import metadata from "../metadata.json"
 
-interface Result {
-    englishWord: string,
-    spanishWord: string,
+interface TranslationResult {
+    queryResult: QueryResult
     existsInDB: boolean
+}
+
+interface QueryResult {
+    displaySource: string
+    translations: Translation[]
+}
+
+interface Translation {
+    displayTarget: string
+    confidence: number
 }
 
 const getNumberOfWords = async (): Promise<number> => {
@@ -12,42 +21,26 @@ const getNumberOfWords = async (): Promise<number> => {
     return Number(await response.text())
 }
 
-const addWord = async (englishWord: string, spanishWord: string): Promise<void> => {
-    await fetch(`${metadata.apiurl}/AddWord?englishWord=${englishWord}&spanishWord=${spanishWord}`)
-}
-
-const getSpanishWord = async (englishWord: string): Promise<Result> => {
-    let response = await fetch(`${metadata.apiurl}/GetSpanishWord?englishWord=${englishWord}`)
+const translateWord = async (language: string, word: string): Promise<TranslationResult> => {
+    let response = await fetch(`${metadata.apiurl}/TranslateWord?language=${language}&word=${word}`)
 
     return await response.json()
 }
 
-const getEnglishWord = async (spanishWord: string): Promise<Result> => {
-    let response = await fetch(`${metadata.apiurl}/GetEnglishWord?spanishWord=${spanishWord}`)
+const getRandomWord = async (language: string): Promise<QueryResult> => {
+    let response = await fetch(`${metadata.apiurl}/GetRandomWord?language=${language}`)
 
     return await response.json()
-}
-
-const getRandomWord = async (): Promise<Result> => {
-    let response = await fetch(`${metadata.apiurl}/GetRandomWord?`)
-
-    let json = await response.json()
-
-    return {
-        spanishWord: json.item1,
-        englishWord: json.item2,
-        existsInDB: true
-    }
 }
 
 export {
     getNumberOfWords,
-    addWord,
-    getSpanishWord,
-    getEnglishWord,
+    translateWord,
     getRandomWord
 }
 
 export type {
-    Result
+    TranslationResult,
+    QueryResult,
+    Translation
 }
