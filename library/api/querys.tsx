@@ -33,10 +33,15 @@ const getRandomWord = async (language: string): Promise<QueryResult> => {
     return await response.json()
 }
 
+const addWord = async (language: string, word: string): Promise<void> => {
+    await fetch(`${metadata.apiurl}/AddWord?language=${language}&word=${word}`)
+}
+
 export {
     getNumberOfWords,
     translateWord,
-    getRandomWord
+    getRandomWord,
+    addWord
 }
 
 export type {

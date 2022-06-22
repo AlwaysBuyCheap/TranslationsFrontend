@@ -2,7 +2,12 @@ import type { NextPage } from 'next'
 import Head from 'next/head'
 import { Form, Button } from 'react-bootstrap'
 import React from 'react'
-import { translateWord, getNumberOfWords, Translation, TranslationResult } from '../library/api/querys'
+import { 
+    translateWord, 
+    getNumberOfWords, 
+    TranslationResult, 
+    addWord 
+} from '../library/api/querys'
 import NavbarComponent from '../componets/navbar'
 
 const Home: NextPage = () => {
@@ -19,10 +24,6 @@ const Home: NextPage = () => {
 
 	const translateWordCallback = async (): Promise<void> => {
 		let result = await translateWord("es", searchedWord)
-
-        if (result.existsInDB == false) {
-            setNumberOfWords(numberOfWords + 1)
-        }
 
 		setTranslatedWord(result)
 	}
@@ -54,7 +55,10 @@ const Home: NextPage = () => {
                     translatedWord.existsInDB == true ?
                         <div>This word has already been searched</div>
                         :
-                        null
+                        <Button onClick={() => {
+                            addWord("es", searchedWord)
+                                .then(() => setNumberOfWords(numberOfWords + 1))
+                        }}>Add word</Button>
                 }
             </div>
 			:
