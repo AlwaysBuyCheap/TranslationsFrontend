@@ -54,7 +54,7 @@ const Home: NextPage = () => {
     }
 
     const Translations = () => {
-        if (translatedWord) {
+        if (translatedWord && translatedWord.queryResult) {
             return translatedWord.queryResult.translations.map(translation => {
                 return <li key={translation.displayTarget}>{translation.displayTarget}</li>
             })
