@@ -4,11 +4,23 @@ import { NextPage } from "next"
 import { getRandomWord, QueryResult, TranslationResult } from '../library/api/querys'
 import { Form, Button } from 'react-bootstrap'
 import NavbarComponent from "../componets/navbar"
+import LanguageSelector, { Languages } from '../componets/languageSelector'
+
+const getLanguageToTranslate = (originLanguage: Languages) => {
+    switch (originLanguage) {
+        case Languages.English:
+            return "spanish"
+    
+        case Languages.Spanish:
+            return "english"
+    }
+}
 
 const Test: NextPage = () => {
     const [randomWord, setRandomWord] = React.useState<QueryResult | null>(null)
     const [answer, setAnswer] = React.useState<string>("")
     const [solved, setSolved] = React.useState<boolean>(false)
+    const [language, setLanguage] = React.useState<Languages>(Languages.Spanish)
 
     const translateInput = React.useRef<HTMLInputElement | null>()
 
@@ -17,15 +29,9 @@ const Test: NextPage = () => {
             .then(result => setRandomWord(result))
     }, [])
 
-    const checkIfAnswerIsCorrect = (): boolean => {
-        for (const translation of randomWord?.translations) {
-            if (translation.displayTarget == answer) {
-                return true
-            }
-        }
-
-        return false
-    }
+    React.useEffect(() => {
+        getNewWord()
+    }, [language])
 
     const getAllTranslations = (): string => {
         let translations = ""
@@ -38,29 +44,37 @@ const Test: NextPage = () => {
     }
 
     const Solution = () => {
-        return solved && randomWord ?
-            <div>
-                {
-                    checkIfAnswerIsCorrect() ?
-                        <>
-                            <div>Congratulations your answer is correct!</div>
-                            <div>All the possible answers are {getAllTranslations()}</div>
-                        </>
-                        :
-                        <div>Your answer is wrong, the correct translations are {getAllTranslations()}</div>
-                }
-            </div>
-            :
-            null
+        if (solved && randomWord) {
+            if (checkIfAnswerIsCorrect()) {
+                return (
+                    <>
+                        <div>Congratulations your answer is correct!</div>
+                        <div>All the possible answers are {getAllTranslations()}</div>
+                    </>
+                )
+            }
+
+            return <div>Your answer is wrong, the correct translations are {getAllTranslations()}</div>
+        }
+    }
+
+    const checkIfAnswerIsCorrect = (): boolean => {
+        for (const translation of randomWord?.translations) {
+            if (translation.displayTarget.toLowerCase() == answer.toLowerCase()) {
+                return true
+            }
+        }
+
+        return false
     }
 
     const getNewWord = () => {
-        getRandomWord("es")
+        getRandomWord(language)
             .then(result => {
                 setRandomWord(result)
                 setSolved(false)
                 setAnswer("")
-                console.log(randomWord)
+
                 if (translateInput.current) {
                     translateInput.current.focus()
                 }
@@ -78,7 +92,11 @@ const Test: NextPage = () => {
             <NavbarComponent />
 
             <main style={localStyles.mainElement}>
-                <div>How is {randomWord?.displaySource} spelled in english?</div>
+                <LanguageSelector setLanguage={setLanguage} />
+
+                <div style={localStyles.question}>
+                    How is {randomWord?.displaySource} spelled in {getLanguageToTranslate(language)}?
+                </div>
 
                 <Form onSubmit={
                     ev => {
@@ -125,6 +143,11 @@ const localStyles = {
         marginTop: "20px",
         paddingLeft: "20px",
         paddingRight: "20px"
+    },
+
+    question: {
+        marginTop: "10px",
+        marginBottom: "10px"
     }
 }
 

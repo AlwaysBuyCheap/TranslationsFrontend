@@ -15,10 +15,15 @@ interface Translation {
     confidence: number
 }
 
-const getNumberOfWords = async (): Promise<number> => {
+interface NumberOfWordsResult {
+    englishWords: number, 
+    spanishWords: number
+}
+
+const getNumberOfWords = async (): Promise<NumberOfWordsResult> => {
     let response = await fetch(`${metadata.apiurl}/GetNumberOfWords`)
 
-    return Number(await response.text())
+    return await response.json()
 }
 
 const translateWord = async (language: string, word: string): Promise<TranslationResult> => {
@@ -47,5 +52,6 @@ export {
 export type {
     TranslationResult,
     QueryResult,
-    Translation
+    Translation,
+    NumberOfWordsResult
 }

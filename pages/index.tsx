@@ -6,33 +6,51 @@ import {
     translateWord, 
     getNumberOfWords, 
     TranslationResult, 
-    addWord 
+    addWord, 
+    NumberOfWordsResult
 } from '../library/api/querys'
 import NavbarComponent from '../componets/navbar'
+import LanguageSelector, { Languages } from '../componets/languageSelector'
 
 const Home: NextPage = () => {
 	const [searchedWord, setSearchedWord] = React.useState<string>("")
 	const [translatedWord, setTranslatedWord] = React.useState<TranslationResult | null>(null)
-    const [numberOfWords, setNumberOfWords] = React.useState<number | null>(null)
+    const [numberOfWords, setNumberOfWords] = React.useState<NumberOfWordsResult | null>(null)
+    const [language, setLanguage] = React.useState<Languages>(Languages.Spanish)
 
     const translateInput = React.useRef<HTMLInputElement | null>()
 
     React.useEffect(() => {
         getNumberOfWords()
-            .then(number => setNumberOfWords(number))
+            .then(result => {
+                console.log(result)
+                setNumberOfWords(result)})
     }, [])
 
 	const translateWordCallback = async (): Promise<void> => {
-		let result = await translateWord("es", searchedWord)
+		let result = await translateWord(language, searchedWord)
 
 		setTranslatedWord(result)
 	}
 
     const NumberOfWordsElement = () => {
-        return numberOfWords ?
-            <div style={localStyles.numberOfWords}>{numberOfWords} different words have been translated!</div>
-            :
-            null
+        if (numberOfWords) {
+            return (
+                <div style={localStyles.numberOfWords}>
+                    {numberOfWords.item1} different words have been translated to english and {numberOfWords.item2} to spanish!
+                </div>
+            )
+        }
+    }
+
+    const GetInputPlaceholder = (): string => {
+        switch (language) {
+            case Languages.English:
+                return "Translate word"
+        
+            case Languages.Spanish:
+                return "Introduzca la palabra a traducir"
+        }
     }
 
     const Translations = () => {
@@ -44,25 +62,26 @@ const Home: NextPage = () => {
     }
 
 	const TranslatedWordElement = () => {
-		return translatedWord ?
-			<div>
-                <div>The posible translations are:</div>
-                <ul>
-                    {Translations()}
-                </ul>
-                
-                {
-                    translatedWord.existsInDB == true ?
-                        <div>This word has already been searched</div>
-                        :
-                        <Button onClick={() => {
-                            addWord("es", searchedWord)
-                                .then(() => setNumberOfWords(numberOfWords + 1))
-                        }}>Add word</Button>
-                }
-            </div>
-			:
-			null
+		if (translatedWord) {
+            return (
+                <div>
+                    <div>The posible translations are:</div>
+                    <ul>
+                        {Translations()}
+                    </ul>
+                    
+                    {
+                        translatedWord.existsInDB == true ?
+                            <div>This word has already been searched</div>
+                            :
+                            <Button onClick={() => {
+                                // addWord(language, searchedWord)
+                                //     .then(() => setNumberOfWords(numberOfWords + 1))
+                            }}>Add word</Button>
+                    }
+                </div>
+            )
+        }
 	}
 
 	return (
@@ -78,16 +97,21 @@ const Home: NextPage = () => {
 			<main style={localStyles.mainElement}>
                 <NumberOfWordsElement />
 
-				<Form onSubmit={
-                    ev => {
-                        ev.preventDefault()
-                        translateWordCallback()
-                    } 
-                }>
+                <LanguageSelector setLanguage={setLanguage} />
+
+				<Form 
+                    onSubmit={
+                        ev => {
+                            ev.preventDefault()
+                            translateWordCallback()
+                        } 
+                    }
+                    style={localStyles.form}
+                >
 					<Form.Group className="mb-3" controlId="formBasicEmail">
 						<Form.Control 
 							type="text" 
-							placeholder="Translate word" 
+							placeholder={GetInputPlaceholder()} 
 							value={searchedWord}
                             ref={translateInput}
 							onChange={ev => setSearchedWord(ev.target.value)}
@@ -112,7 +136,7 @@ const Home: NextPage = () => {
 
 const localStyles = {
     numberOfWords: {
-        'marginBottom': "20px"
+        'marginBottom': "10px"
     },
 
     mainElement: {
@@ -123,6 +147,10 @@ const localStyles = {
 
     translateButton: {
         marginRight: "10px"
+    },
+
+    form: {
+        marginTop: "10px"
     }
 }
 
