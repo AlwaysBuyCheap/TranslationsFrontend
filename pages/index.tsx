@@ -19,6 +19,7 @@ const Home: NextPage = () => {
     const [language, setLanguage] = React.useState<Languages>(Languages.Spanish)
 
     const translateInput = React.useRef<HTMLInputElement | null>()
+    const focusInput = () => translateInput.current.focus()
 
     React.useEffect(() => {
         getNumberOfWords()
@@ -96,7 +97,10 @@ const Home: NextPage = () => {
 			<main style={localStyles.mainElement}>
                 <NumberOfWordsElement />
 
-                <LanguageSelector setLanguage={setLanguage} />
+                <LanguageSelector 
+                    setLanguage={setLanguage} 
+                    focusInput={focusInput}
+                />
 
 				<Form 
                     onSubmit={
@@ -123,7 +127,7 @@ const Home: NextPage = () => {
                     <Button variant="primary" type="button" onClick={() => {
                         setSearchedWord("")
                         setTranslatedWord(null)
-                        translateInput.current.focus()
+                        focusInput()
                     }}>Clear</Button>
 
 					<TranslatedWordElement />

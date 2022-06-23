@@ -23,6 +23,7 @@ const Test: NextPage = () => {
     const [language, setLanguage] = React.useState<Languages>(Languages.Spanish)
 
     const translateInput = React.useRef<HTMLInputElement | null>()
+    const focusInput = () => translateInput.current.focus()
 
     React.useEffect(() => {
         getRandomWord("es")
@@ -75,9 +76,7 @@ const Test: NextPage = () => {
                 setSolved(false)
                 setAnswer("")
 
-                if (translateInput.current) {
-                    translateInput.current.focus()
-                }
+                focusInput()
             })
     }
 
@@ -92,7 +91,10 @@ const Test: NextPage = () => {
             <NavbarComponent />
 
             <main style={localStyles.mainElement}>
-                <LanguageSelector setLanguage={setLanguage} />
+                <LanguageSelector 
+                    setLanguage={setLanguage} 
+                    focusInput={focusInput}
+                />
 
                 <div style={localStyles.question}>
                     How is {randomWord?.displaySource} spelled in {getLanguageToTranslate(language)}?

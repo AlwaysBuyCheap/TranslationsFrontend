@@ -7,7 +7,8 @@ enum Languages {
 }
 
 const LanguageSelector = (props: {
-    setLanguage: (language: Languages) => void
+    setLanguage: (language: Languages) => void,
+    focusInput: () => void
 }): React.ReactElement => {
     return (
         <>
@@ -16,7 +17,10 @@ const LanguageSelector = (props: {
                 label="spanish"
                 name="originLanguage"
                 type="radio"
-                onClick={() => props.setLanguage(Languages.Spanish)}
+                onClick={() => {
+                    props.setLanguage(Languages.Spanish)
+                    props.focusInput()
+                }}
                 defaultChecked
             />
 
@@ -25,7 +29,10 @@ const LanguageSelector = (props: {
                 label="english"
                 name="originLanguage"
                 type="radio"
-                onClick={() => props.setLanguage(Languages.English)}
+                onClick={() => {
+                    props.setLanguage(Languages.English)
+                    props.focusInput()
+                }}
             />
         </>
     )
