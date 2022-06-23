@@ -23,7 +23,6 @@ const Home: NextPage = () => {
     React.useEffect(() => {
         getNumberOfWords()
             .then(result => {
-                console.log(result)
                 setNumberOfWords(result)})
     }, [])
 
