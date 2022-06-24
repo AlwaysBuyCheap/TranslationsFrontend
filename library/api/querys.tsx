@@ -16,8 +16,8 @@ interface Translation {
 }
 
 interface NumberOfWordsResult {
-    item1: number, 
-    item2: number
+    es: number, 
+    en: number
 }
 
 const getNumberOfWords = async (): Promise<NumberOfWordsResult> => {

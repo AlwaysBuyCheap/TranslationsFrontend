@@ -27,6 +27,10 @@ const Home: NextPage = () => {
                 setNumberOfWords(result)})
     }, [])
 
+    React.useEffect(() => {
+        console.log('updated')
+    }, [numberOfWords])
+
 	const translateWordCallback = async (): Promise<void> => {
 		let result = await translateWord(language, searchedWord)
 
@@ -37,7 +41,7 @@ const Home: NextPage = () => {
         if (numberOfWords) {
             return (
                 <div style={localStyles.numberOfWords}>
-                    {numberOfWords.item1} different words have been translated to english and {numberOfWords.item2} to spanish!
+                    {numberOfWords.es} different words have been translated to english and {numberOfWords.en} to spanish!
                 </div>
             )
         }
@@ -75,8 +79,16 @@ const Home: NextPage = () => {
                             <div>This word has already been searched</div>
                             :
                             <Button onClick={() => {
-                                // addWord(language, searchedWord)
-                                //     .then(() => setNumberOfWords(numberOfWords + 1))
+                                addWord(language, searchedWord)
+                                    .then(() => {
+                                        let newNumberOfWords = numberOfWords
+                                        newNumberOfWords[language]  = newNumberOfWords[language] + 1
+        
+                                        setNumberOfWords({
+                                            es: newNumberOfWords.es,
+                                            en: newNumberOfWords.en
+                                        })
+                                    })
                             }}>Add word</Button>
                     }
                 </div>
