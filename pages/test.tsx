@@ -1,44 +1,36 @@
 import React from "react"
 import Head from 'next/head'
 import { NextPage } from "next"
-import { getRandomWord, QueryResult, TranslationResult } from '../library/api/querys'
+import { getRandomWord, Translations } from '../library/api/querys'
 import { Form, Button } from 'react-bootstrap'
 import NavbarComponent from "../componets/navbar"
-import LanguageSelector, { Languages } from '../componets/languageSelector'
-
-const getLanguageToTranslate = (originLanguage: Languages) => {
-    switch (originLanguage) {
-        case Languages.English:
-            return "spanish"
-    
-        case Languages.Spanish:
-            return "english"
-    }
-}
+import LanguageSelector, { languages, TranslationLanguages } from '../componets/languageSelector'
 
 const Test: NextPage = () => {
-    const [randomWord, setRandomWord] = React.useState<QueryResult | null>(null)
+    const [randomWord, setRandomWord] = React.useState<Translations | null>(null)
     const [answer, setAnswer] = React.useState<string>("")
     const [solved, setSolved] = React.useState<boolean>(false)
-    const [language, setLanguage] = React.useState<Languages>(Languages.Spanish)
+    const [translationLanguages, setTRanslationLanguages] = React.useState<TranslationLanguages>({
+        from: languages.Spanish, 
+        to: languages.English
+    })
 
     const translateInput = React.useRef<HTMLInputElement | null>()
     const focusInput = () => translateInput.current.focus()
 
     React.useEffect(() => {
-        getRandomWord("es")
-            .then(result => setRandomWord(result))
+        getNewWord()
     }, [])
 
     React.useEffect(() => {
         getNewWord()
-    }, [language])
+    }, [translationLanguages])
 
     const getAllTranslations = (): string => {
         let translations = ""
 
         for (const translation of randomWord?.translations) {
-            translations += ` ${translation.displayTarget}, `
+            translations += ` ${translation.normalizedTarget}, `
         }
 
         return translations
@@ -61,7 +53,7 @@ const Test: NextPage = () => {
 
     const checkIfAnswerIsCorrect = (): boolean => {
         for (const translation of randomWord?.translations) {
-            if (translation.displayTarget.toLowerCase() == answer.toLowerCase()) {
+            if (translation.normalizedTarget == answer) {
                 return true
             }
         }
@@ -70,7 +62,7 @@ const Test: NextPage = () => {
     }
 
     const getNewWord = () => {
-        getRandomWord(language)
+        getRandomWord(translationLanguages.from.abbreviation)
             .then(result => {
                 setRandomWord(result)
                 setSolved(false)
@@ -92,12 +84,12 @@ const Test: NextPage = () => {
 
             <main style={localStyles.mainElement}>
                 <LanguageSelector 
-                    setLanguage={setLanguage} 
+                    setLanguages={setTRanslationLanguages} 
                     focusInput={focusInput}
                 />
 
                 <div style={localStyles.question}>
-                    How is {randomWord?.displaySource} spelled in {getLanguageToTranslate(language)}?
+                    How is {randomWord?.normalizedSource} spelled in {translationLanguages.from.name}?
                 </div>
 
                 <Form onSubmit={
@@ -111,7 +103,7 @@ const Test: NextPage = () => {
                         placeholder="Guess word"
                         value={answer}
                         ref={translateInput}
-                        onChange={ev => setAnswer(ev.target.value)}
+                        onChange={ev => setAnswer(ev.target.value.toLowerCase())}
                         autoComplete="off"
                         autoFocus
                     />
@@ -124,13 +116,20 @@ const Test: NextPage = () => {
                             type="submit"
                             style={localStyles.checkAnswerButton}
                         >Check answer</Button>
-                        <Button variant="primary" type="button" onClick={getNewWord}>Get new word</Button>
+                        
+                        <Button 
+                            variant="primary" 
+                            type="button" 
+                            onClick={getNewWord}
+                        >Get new word</Button>
                     </div>
                 </Form>
             </main>
         </>
     )
 }
+
+export default Test
 
 const localStyles = {
     checkAnswerButton: {
@@ -153,4 +152,3 @@ const localStyles = {
     }
 }
 
-export default Test

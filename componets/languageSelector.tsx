@@ -1,13 +1,33 @@
 import React from "react"
 import { Form } from 'react-bootstrap'
 
-enum Languages {
-    Spanish = "es",
-    English = "en"
+interface TranslationLanguages {
+    from: Language,
+    to: Language
+}
+
+const languages: {[key: string] : Language} = {
+    Spanish: {
+        abbreviation: "es",
+        name: "spanish",
+        translatePlaceholder: "Introduzca la palabra a traducir"
+    },
+
+    English: {
+        abbreviation: "en",
+        name: "english",
+        translatePlaceholder: "Translate word"
+    }
+}
+
+interface Language {
+    abbreviation: string,
+    name: string,
+    translatePlaceholder: string
 }
 
 const LanguageSelector = (props: {
-    setLanguage: (language: Languages) => void,
+    setLanguages: (languages: TranslationLanguages) => void,
     focusInput: () => void
 }): React.ReactElement => {
     return (
@@ -18,7 +38,7 @@ const LanguageSelector = (props: {
                 name="originLanguage"
                 type="radio"
                 onClick={() => {
-                    props.setLanguage(Languages.Spanish)
+                    props.setLanguages({from: languages.Spanish, to: languages.English})
                     props.focusInput()
                 }}
                 defaultChecked
@@ -30,7 +50,7 @@ const LanguageSelector = (props: {
                 name="originLanguage"
                 type="radio"
                 onClick={() => {
-                    props.setLanguage(Languages.English)
+                    props.setLanguages({from: languages.English, to: languages.Spanish})
                     props.focusInput()
                 }}
             />
@@ -41,5 +61,10 @@ const LanguageSelector = (props: {
 export default LanguageSelector
 
 export {
-    Languages
+    languages
+}
+
+export type {
+    Language,
+    TranslationLanguages
 }
