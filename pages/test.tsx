@@ -1,17 +1,18 @@
 import React from "react"
 import Head from 'next/head'
 import { NextPage } from "next"
-import { getRandomWord, Translations } from '../library/api/querys'
+import { getRandomWord, TranslationResult, deleteWord } from '../library/api/querys'
 import { Form, Button } from 'react-bootstrap'
 import NavbarComponent from "../componets/navbar"
 import LanguageSelector, { languages, TranslationLanguages } from '../componets/languageSelector'
+import Translations from "../componets/translations"
 
 const Test: NextPage = () => {
-    const [randomWord, setRandomWord] = React.useState<Translations | null>(null)
+    const [randomWord, setRandomWord] = React.useState<TranslationResult | null>(null)
     const [answer, setAnswer] = React.useState<string>("")
     const [solved, setSolved] = React.useState<boolean>(false)
     const [translationLanguages, setTRanslationLanguages] = React.useState<TranslationLanguages>({
-        from: languages.Spanish, 
+        from: languages.Spanish,
         to: languages.English
     })
 
@@ -26,33 +27,37 @@ const Test: NextPage = () => {
         getNewWord()
     }, [translationLanguages])
 
-    const getAllTranslations = (): string => {
-        let translations = ""
-
-        for (const translation of randomWord?.translations) {
-            translations += ` ${translation.normalizedTarget}, `
-        }
-
-        return translations
-    }
-
     const Solution = () => {
         if (solved && randomWord) {
             if (checkIfAnswerIsCorrect()) {
-                return (
-                    <>
-                        <div>Congratulations your answer is correct!</div>
-                        <div>All the possible answers are {getAllTranslations()}</div>
-                    </>
-                )
+                return <Solutions message="Congratulations your answer is correct!" />
             }
 
-            return <div>Your answer is wrong, the correct translations are {getAllTranslations()}</div>
+            return <Solutions message="Your answer is wrong, the correct translations are:" />
         }
     }
 
+    const Solutions = (props: { message: string }) => {
+        return (
+            <>
+                <div>{props.message}</div>
+
+                <ul>
+                    <Translations
+                        translatedWord={randomWord}
+                        languages={translationLanguages}
+                    />
+                </ul>
+
+                <Button onClick={() => {
+                    deleteWord(translationLanguages.from.abbreviation, randomWord.queryResult.normalizedSource)
+                }}>Delete word</Button>
+            </>
+        )
+    }
+
     const checkIfAnswerIsCorrect = (): boolean => {
-        for (const translation of randomWord?.translations) {
+        for (const translation of randomWord?.queryResult.translations) {
             if (translation.normalizedTarget == answer) {
                 return true
             }
@@ -83,13 +88,13 @@ const Test: NextPage = () => {
             <NavbarComponent />
 
             <main style={localStyles.mainElement}>
-                <LanguageSelector 
-                    setLanguages={setTRanslationLanguages} 
+                <LanguageSelector
+                    setLanguages={setTRanslationLanguages}
                     focusInput={focusInput}
                 />
 
                 <div style={localStyles.question}>
-                    How is {randomWord?.normalizedSource} spelled in {translationLanguages.from.name}?
+                    How is {randomWord?.queryResult.normalizedSource} spelled in {translationLanguages.from.name}?
                 </div>
 
                 <Form onSubmit={
@@ -116,10 +121,10 @@ const Test: NextPage = () => {
                             type="submit"
                             style={localStyles.checkAnswerButton}
                         >Check answer</Button>
-                        
-                        <Button 
-                            variant="primary" 
-                            type="button" 
+
+                        <Button
+                            variant="primary"
+                            type="button"
                             onClick={getNewWord}
                         >Get new word</Button>
                     </div>

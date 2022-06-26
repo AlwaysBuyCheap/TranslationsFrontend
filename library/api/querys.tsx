@@ -53,10 +53,13 @@ const translateWord = async (
     return await response.json()
 }
 
-const getRandomWord = async (language: string): Promise<Translations> => {
+const getRandomWord = async (language: string): Promise<TranslationResult> => {
     let response = await fetch(`${metadata.apiurl}/GetRandomWord?language=${language}`)
 
-    return await response.json()
+    return {
+        queryResult: await response.json(),
+        existsInDB: true
+    }
 }
 
 const addWord = async (languageAbbreviation: string, word: string): Promise<void> => {
