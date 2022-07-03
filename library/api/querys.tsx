@@ -76,13 +76,26 @@ const deleteWord = async (languageAbbreviation: string, word: string): Promise<v
     await fetch(`${metadata.apiurl}/DeleteWord?language=${languageAbbreviation}&word=${word}`)
 }
 
+const getSpeech = async (languageAbbreviation: string, word: string): Promise<ArrayBuffer> => {
+    let response = await fetch(`${metadata.apiurl}/GetSpeech?language=${languageAbbreviation}&word=${word}`)
+
+    let text = await response.text()
+
+    console.log(text)
+
+    const utf8Encode = new TextEncoder()
+
+    return utf8Encode.encode(text).buffer
+}
+
 export {
     getNumberOfWords,
     translateWord,
     getRandomWord,
     addWord,
     getExamples,
-    deleteWord
+    deleteWord,
+    getSpeech
 }
 
 export type {

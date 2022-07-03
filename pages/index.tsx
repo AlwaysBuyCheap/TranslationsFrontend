@@ -16,6 +16,7 @@ import LanguageSelector, {
     TranslationLanguages 
 } from '../componets/languageSelector'
 import Translations from '../componets/translations'
+import WordSpeech from '../componets/wordSpeech'
 
 const Home: NextPage = () => {
 	const [searchedWord, setSearchedWord] = React.useState<string>("")
@@ -67,7 +68,8 @@ const Home: NextPage = () => {
                         translatedWord.existsInDB == true ?
                             <div>
                                 <div>This word has already been searched</div>
-                                <Button onClick={() => {
+
+                                <Button variant="danger" onClick={() => {
                                     deleteWord(translationLanguages.from.abbreviation, searchedWord)
                                         .then(() => {
                                             let newNumberOfWords = numberOfWords
@@ -116,7 +118,7 @@ const Home: NextPage = () => {
                     setLanguages={setTranslationLanguages} 
                     focusInput={focusInput}
                 />
-
+                
 				<Form 
                     onSubmit={
                         ev => {

@@ -49,7 +49,7 @@ const Test: NextPage = () => {
                     />
                 </ul>
 
-                <Button onClick={() => {
+                <Button variant="danger" onClick={() => {
                     deleteWord(translationLanguages.from.abbreviation, randomWord.queryResult.normalizedSource)
                 }}>Delete word</Button>
             </>
