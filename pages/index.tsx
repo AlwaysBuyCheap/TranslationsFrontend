@@ -2,27 +2,27 @@ import type { NextPage } from 'next'
 import Head from 'next/head'
 import { Form, Button } from 'react-bootstrap'
 import React from 'react'
-import { 
-    translateWord, 
-    getNumberOfWords, 
-    TranslationResult, 
-    addWord, 
+import {
+    translateWord,
+    getNumberOfWords,
+    TranslationResult,
+    addWord,
     NumberOfWords,
     deleteWord
 } from '../library/api/querys'
 import NavbarComponent from '../componets/navbar'
-import LanguageSelector, { 
-    languages, 
-    TranslationLanguages 
+import LanguageSelector, {
+    languages,
+    TranslationLanguages
 } from '../componets/languageSelector'
 import Translations from '../componets/translations'
-import WordSpeech from '../componets/wordSpeech'
+
 
 const Home: NextPage = () => {
-	const [searchedWord, setSearchedWord] = React.useState<string>("")
-	const [translatedWord, setTranslatedWord] = React.useState<TranslationResult | null>(null)
+    const [searchedWord, setSearchedWord] = React.useState<string>("")
+    const [translatedWord, setTranslatedWord] = React.useState<TranslationResult | null>(null)
     const [numberOfWords, setNumberOfWords] = React.useState<NumberOfWords | null>(null)
-    const [translationLanguages, setTranslationLanguages] = React.useState<TranslationLanguages>({from: languages.Spanish, to: languages.English})
+    const [translationLanguages, setTranslationLanguages] = React.useState<TranslationLanguages>({ from: languages.Spanish, to: languages.English })
 
     const translateInput = React.useRef<HTMLInputElement | null>()
     const focusInput = () => translateInput.current.focus()
@@ -30,16 +30,17 @@ const Home: NextPage = () => {
     React.useEffect(() => {
         getNumberOfWords()
             .then(result => {
-                setNumberOfWords(result)})
+                setNumberOfWords(result)
+            })
 
         focusInput()
     }, [])
 
-	const translateWordCallback = async (): Promise<void> => {
-		let result = await translateWord(translationLanguages.from.abbreviation, searchedWord)
+    const translateWordCallback = async (): Promise<void> => {
+        let result = await translateWord(translationLanguages.from.abbreviation, searchedWord)
 
-		setTranslatedWord(result)
-	}
+        setTranslatedWord(result)
+    }
 
     const NumberOfWordsElement = () => {
         if (numberOfWords) {
@@ -51,19 +52,19 @@ const Home: NextPage = () => {
         }
     }
 
-	const TranslatedWordElement = () => {
-		if (translatedWord) {
+    const TranslatedWordElement = () => {
+        if (translatedWord) {
             return (
                 <div>
                     <div>The posible translations are:</div>
 
                     <ul>
-                        <Translations 
-                            translatedWord={translatedWord} 
-                            languages={translationLanguages} 
+                        <Translations
+                            translatedWord={translatedWord}
+                            languages={translationLanguages}
                         />
                     </ul>
-                    
+
                     {
                         translatedWord.existsInDB == true ?
                             <div>
@@ -73,8 +74,8 @@ const Home: NextPage = () => {
                                     deleteWord(translationLanguages.from.abbreviation, searchedWord)
                                         .then(() => {
                                             let newNumberOfWords = numberOfWords
-                                            newNumberOfWords[translationLanguages.from.abbreviation as keyof NumberOfWords]  = newNumberOfWords[translationLanguages.from.abbreviation as keyof NumberOfWords] - 1
-            
+                                            newNumberOfWords[translationLanguages.from.abbreviation as keyof NumberOfWords] = newNumberOfWords[translationLanguages.from.abbreviation as keyof NumberOfWords] - 1
+
                                             setNumberOfWords({
                                                 es: newNumberOfWords.es,
                                                 en: newNumberOfWords.en
@@ -87,8 +88,8 @@ const Home: NextPage = () => {
                                 addWord(translationLanguages.from.abbreviation, searchedWord)
                                     .then(() => {
                                         let newNumberOfWords = numberOfWords
-                                        newNumberOfWords[translationLanguages.from.abbreviation as keyof NumberOfWords]  = newNumberOfWords[translationLanguages.from.abbreviation as keyof NumberOfWords] + 1
-        
+                                        newNumberOfWords[translationLanguages.from.abbreviation as keyof NumberOfWords] = newNumberOfWords[translationLanguages.from.abbreviation as keyof NumberOfWords] + 1
+
                                         setNumberOfWords({
                                             es: newNumberOfWords.es,
                                             en: newNumberOfWords.en
@@ -99,59 +100,60 @@ const Home: NextPage = () => {
                 </div>
             )
         }
-	}
+    }
 
-	return (
-		<>
-			<Head>
-				<title>Translate</title>
-				<meta name="description" content="Generated by create next app" />
-				<link rel="icon" href="/translation.png" />
-			</Head>
+    return (
+        <>
+            <Head>
+                <title>Translate</title>
+                <meta name="description" content="Generated by create next app" />
+                <link rel="icon" href="/translation.png" />
+            </Head>
 
             <NavbarComponent />
 
-			<main style={localStyles.mainElement}>
+            <main style={localStyles.mainElement}>
+            
                 <NumberOfWordsElement />
 
-                <LanguageSelector 
-                    setLanguages={setTranslationLanguages} 
+                <LanguageSelector
+                    setLanguages={setTranslationLanguages}
                     focusInput={focusInput}
                 />
-                
-				<Form 
+
+                <Form
                     onSubmit={
                         ev => {
                             ev.preventDefault()
                             translateWordCallback()
-                        } 
+                        }
                     }
                     style={localStyles.form}
                 >
-					<Form.Group className="mb-3" controlId="formBasicEmail">
-						<Form.Control 
-							type="text" 
-							placeholder={translationLanguages.from.translatePlaceholder} 
-							value={searchedWord}
+                    <Form.Group className="mb-3" controlId="formBasicEmail">
+                        <Form.Control
+                            type="text"
+                            placeholder={translationLanguages.from.translatePlaceholder}
+                            value={searchedWord}
                             ref={translateInput}
-							onChange={ev => setSearchedWord(ev.target.value.toLowerCase())}
+                            onChange={ev => setSearchedWord(ev.target.value.toLowerCase())}
                             autoComplete="off"
-							autoFocus
-						/>
-					</Form.Group>
+                            autoFocus
+                        />
+                    </Form.Group>
 
-					<Button variant="primary" type="submit" style={localStyles.translateButton}>Translate</Button>
+                    <Button variant="primary" type="submit" style={localStyles.translateButton}>Translate</Button>
                     <Button variant="primary" type="button" onClick={() => {
                         setSearchedWord("")
                         setTranslatedWord(null)
                         focusInput()
                     }}>Clear</Button>
 
-					<TranslatedWordElement />
-				</Form>
-			</main>
-		</>
-	)
+                    <TranslatedWordElement />
+                </Form>
+            </main>
+        </>
+    )
 }
 
 export default Home

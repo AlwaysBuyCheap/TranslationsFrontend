@@ -6,6 +6,7 @@ import { Form, Button } from 'react-bootstrap'
 import NavbarComponent from "../componets/navbar"
 import LanguageSelector, { languages, TranslationLanguages } from '../componets/languageSelector'
 import Translations from "../componets/translations"
+import { Alert } from "@mui/material"
 
 const Test: NextPage = () => {
     const [randomWord, setRandomWord] = React.useState<TranslationResult | null>(null)
@@ -21,39 +22,32 @@ const Test: NextPage = () => {
 
     React.useEffect(() => {
         getNewWord()
-    }, [])
-
-    React.useEffect(() => {
-        getNewWord()
     }, [translationLanguages])
 
     const Solution = () => {
         if (solved && randomWord) {
-            if (checkIfAnswerIsCorrect()) {
-                return <Solutions message="Congratulations your answer is correct!" />
-            }
-
-            return <Solutions message="Your answer is wrong, the correct translations are:" />
+            return (
+                <div style={localStyles.solution}>
+                    {
+                    checkIfAnswerIsCorrect() ?
+                        <Alert severity="success">Congratulations your answer is correct!</Alert>
+                        :
+                        <Alert severity="error">Your answer is wrong, the correct translations are:</Alert>
+                    }
+    
+                    <ul>
+                        <Translations
+                            translatedWord={randomWord}
+                            languages={translationLanguages}
+                        />
+                    </ul>
+    
+                    <Button variant="danger" onClick={() => {
+                        deleteWord(translationLanguages.from.abbreviation, randomWord.queryResult.normalizedSource)
+                    }}>Delete word</Button>
+                </div>
+            )
         }
-    }
-
-    const Solutions = (props: { message: string }) => {
-        return (
-            <>
-                <div>{props.message}</div>
-
-                <ul>
-                    <Translations
-                        translatedWord={randomWord}
-                        languages={translationLanguages}
-                    />
-                </ul>
-
-                <Button variant="danger" onClick={() => {
-                    deleteWord(translationLanguages.from.abbreviation, randomWord.queryResult.normalizedSource)
-                }}>Delete word</Button>
-            </>
-        )
     }
 
     const checkIfAnswerIsCorrect = (): boolean => {
@@ -154,6 +148,10 @@ const localStyles = {
     question: {
         marginTop: "10px",
         marginBottom: "10px"
+    },
+
+    solution: {
+        marginTop: "10px"
     }
 }
 
