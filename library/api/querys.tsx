@@ -1,4 +1,3 @@
-import { getHeapCodeStatistics } from "v8"
 import metadata from "../metadata.json"
 
 interface TranslationResult {

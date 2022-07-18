@@ -16,6 +16,7 @@ import LanguageSelector, {
     TranslationLanguages
 } from '../componets/languageSelector'
 import Translations from '../componets/translations'
+import WordActions from '../componets/wordActions'
 
 
 const Home: NextPage = () => {
@@ -123,7 +124,7 @@ const Home: NextPage = () => {
 
                 <Form
                     onSubmit={
-                        ev => {
+                        (ev: any)  => {
                             ev.preventDefault()
                             translateWordCallback()
                         }
@@ -136,13 +137,16 @@ const Home: NextPage = () => {
                             placeholder={translationLanguages.from.translatePlaceholder}
                             value={searchedWord}
                             ref={translateInput}
-                            onChange={ev => setSearchedWord(ev.target.value.toLowerCase())}
+                            onChange={(ev: any) => setSearchedWord(ev.target.value.toLowerCase())}
                             autoComplete="off"
                             autoFocus
                         />
                     </Form.Group>
 
+                    <WordActions word={translatedWord} />
+
                     <Button variant="primary" type="submit" style={localStyles.translateButton}>Translate</Button>
+                    
                     <Button variant="primary" type="button" onClick={() => {
                         setSearchedWord("")
                         setTranslatedWord(null)
@@ -160,7 +164,7 @@ export default Home
 
 const localStyles = {
     numberOfWords: {
-        'marginBottom': "10px"
+        marginBottom: "10px"
     },
 
     mainElement: {
