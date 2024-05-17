@@ -1,11 +1,11 @@
 import React from "react"
 import { Button } from "react-bootstrap"
-import { TranslationResult, getExamples, Translation, Examples } from "../library/api/querys"
-import { TranslationLanguages } from "./languageSelector"
+import { TranslationResult, getExamples, Translation, Examples, Example } from "../library/api/querys"
+import { Languages } from "../pages"
 
 const Translations = (props: {
     translatedWord: TranslationResult
-    languages: TranslationLanguages
+    languages: Languages
 }) => {
     const Result = () => {
         if (props.translatedWord) {
@@ -18,11 +18,11 @@ const Translations = (props: {
     }
 
     const TranslationsList = () => {
-        if (props.translatedWord.queryResult) {
-            return props.translatedWord.queryResult.translations.map(translation => {
+        if (props.translatedWord) {
+            return props.translatedWord.translations.map(translation => {
                 return (
                     <Translation 
-                        key={props.translatedWord.queryResult.translations.indexOf(translation)}
+                        key={props.translatedWord.translations.indexOf(translation)}
                         translation={translation} 
                     />
                 )
@@ -33,7 +33,7 @@ const Translations = (props: {
     const Translation = (translationProps: {
         translation: Translation
     }) => {
-        const [examples, setExamples] = React.useState<Examples | null>(null)
+        const [examples, setExamples] = React.useState<Example[] | null>(null)
 
         const TranslationResult = () => {
             return (
@@ -42,12 +42,12 @@ const Translations = (props: {
                     
                     <Button onClick={() => {
                         getExamples(
-                            props.translatedWord.queryResult.normalizedSource, 
+                            props.translatedWord.normalizedSource, 
                             translationProps.translation.normalizedTarget, 
-                            props.languages.from.abbreviation, 
-                            props.languages.to.abbreviation
+                            props.languages.From, 
+                            props.languages.To
                         )
-                            .then(examples => setExamples(examples))
+                        .then(examples => setExamples(examples))
                     }}>Get examples</Button>
     
                     <Examples />
@@ -67,9 +67,9 @@ const Translations = (props: {
             }
 
             const ExamplesList = () => {
-                return examples.examples.map(example => {
+                return examples.map(example => {
                     return (
-                        <li key={examples.examples.indexOf(example)}>
+                        <li key={examples.indexOf(example)}>
                             <div>{example.targetPrefix}{example.targetTerm}{example.targetSuffix}</div>
                             <div>{example.sourcePrefix}{example.sourceTerm}{example.sourceSuffix}</div>
                         </li>

@@ -1,14 +1,17 @@
 import metadata from "../metadata.json"
 
-interface TranslationResult {
-    queryResult: Translations
-    existsInDB: boolean
+interface Word {
+    id: string,
+    name: string,
+    languageCode: string
 }
 
-interface Translations {
+interface TranslationResult {
     normalizedSource: string
     displaySource: string
     translations: Translation[]
+    wordExists: boolean
+    wordGuid: string
 }
 
 interface Translation {
@@ -18,8 +21,8 @@ interface Translation {
 }
 
 interface NumberOfWords {
-    es: number, 
-    en: number
+    languageCode: string, 
+    count: number
 }
 
 interface Examples {
@@ -37,55 +40,109 @@ interface Example {
     targetSuffix: string
 }
 
-const getNumberOfWords = async (): Promise<NumberOfWords> => {
-    let response = await fetch(`${metadata.apiurl}/GetNumberOfWords`)
+interface TextTranslation {
+    text: string,
+    to: string
+}
+
+interface TextTranslationDto {
+    translations: TextTranslation[],
+    existInDb: boolean,
+    quoteId: string | null
+}
+
+const getNumberOfWords = async (): Promise<NumberOfWords[]> => {
+    let response = await fetch(`${metadata.apiurl}/Words/Count`)
 
     return await response.json()
 }
 
 const translateWord = async (
-    fromLanguageAbbreviation: string, 
+    from: string, 
+    to: string,
     word: string
 ): Promise<TranslationResult> => {
-    let response = await fetch(`${metadata.apiurl}/TranslateWord?language=${fromLanguageAbbreviation}&word=${word}`)
+    let response = await fetch(`${metadata.apiurl}/Translator/Overlook?word=${word}&from=${from}&to=${to}`)
 
     return await response.json()
 }
 
-const getRandomWord = async (language: string): Promise<TranslationResult> => {
-    let response = await fetch(`${metadata.apiurl}/GetRandomWord?language=${language}`)
+const translateText = async(
+    text: string,
+    from: string,
+    to: string
+): Promise<TextTranslationDto> => {
+    let response = await fetch(`${metadata.apiurl}/Translator/Translate?text=${text}&from=${from}&to=${to}`)
 
-    return {
-        queryResult: await response.json(),
-        existsInDB: true
+    return await response.json()
+}
+
+const getRandomWord = async (): Promise<Word> => {
+    let response = await fetch(`${metadata.apiurl}/Words/Random`)
+    var result = await response.json() as Word
+
+    return result;
+}
+
+const addWord = async (languageCode: string, name: string): Promise<void> => {
+    var body = {
+        Name: name,
+        LanguageCode: languageCode
     }
+
+    await fetch(`${metadata.apiurl}/Words`, {
+        method: 'POST',
+        body: JSON.stringify(body),
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    })
 }
 
-const addWord = async (languageAbbreviation: string, word: string): Promise<void> => {
-    await fetch(`${metadata.apiurl}/AddWord?language=${languageAbbreviation}&word=${word}`)
+const addQuote = async (languageCode: string, text: string): Promise<void> => {
+    var body = {
+        Text: text,
+        LanguageCode: languageCode
+    }
+
+    await fetch(`${metadata.apiurl}/Quotes`, {
+        method: 'POST',
+        body: JSON.stringify(body),
+        headers: {
+            'Content-Type': 'application/json'
+        }
+    })
 }
 
-const getExamples = async (text: string, translation: string, from: string, to: string): Promise<Examples> => {
-    let response = await fetch(`${metadata.apiurl}/GetExamples?text=${text}&translation=${translation}&from=${from}&to=${to}`)
+const getExamples = async (text: string, translation: string, from: string, to: string): Promise<Example[]> => {
+    let response = await fetch(`${metadata.apiurl}/Translator/Examples?word=${text}&translation=${translation}&from=${from}&to=${to}`)
 
     return await response.json()
 }
 
-const deleteWord = async (languageAbbreviation: string, word: string): Promise<void> => {
-    await fetch(`${metadata.apiurl}/DeleteWord?language=${languageAbbreviation}&word=${word}`)
+const deleteWord = async (guid: string): Promise<void> => {
+    await fetch(`${metadata.apiurl}/Words/${guid}`, {
+        method: 'DELETE'
+    })
 }
 
-const getSpeech = async (languageAbbreviation: string, word: string): Promise<ArrayBuffer> => {
-    let response = await fetch(`${metadata.apiurl}/GetSpeech?language=${languageAbbreviation}&word=${word}`)
-
-    let text = await response.text()
-
-    console.log(text)
-
-    const utf8Encode = new TextEncoder()
-
-    return utf8Encode.encode(text).buffer
+const deleteQuote = async (guid: string): Promise<void> => {
+    await fetch(`${metadata.apiurl}/QuoteS/${guid}`, {
+        method: 'DELETE'
+    })
 }
+
+// const getSpeech = async (languageAbbreviation: string, word: string): Promise<ArrayBuffer> => {
+//     let response = await fetch(`${metadata.apiurl}/GetSpeech?language=${languageAbbreviation}&word=${word}`)
+
+//     let text = await response.text()
+
+//     console.log(text)
+
+//     const utf8Encode = new TextEncoder()
+
+//     return utf8Encode.encode(text).buffer
+// }
 
 export {
     getNumberOfWords,
@@ -94,14 +151,19 @@ export {
     addWord,
     getExamples,
     deleteWord,
-    getSpeech
+    translateText,
+    deleteQuote,
+    addQuote
+    // getSpeech
 }
 
 export type {
     TranslationResult,
-    Translations,
+    // Translations,
     Translation,
     NumberOfWords,
     Examples,
-    Example
+    Example,
+    TextTranslation,
+    TextTranslationDto
 }

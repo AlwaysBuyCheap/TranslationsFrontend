@@ -1,20 +1,22 @@
 import React from "react"
 import Head from 'next/head'
 import { NextPage } from "next"
-import { getRandomWord, TranslationResult, deleteWord } from '../library/api/querys'
+import { getRandomWord, TranslationResult, deleteWord, translateWord } from '../library/api/querys'
 import { Form, Button } from 'react-bootstrap'
 import NavbarComponent from "../componets/navbar"
-import LanguageSelector, { languages, TranslationLanguages } from '../componets/languageSelector'
 import Translations from "../componets/translations"
 import { Alert } from "@mui/material"
+import { LanguageCodes } from "../Domain/Enums/LanguageCodes"
+import { Languages } from "."
+import languageDescriptions from "../Domain/Objects/LanguageDescription"
 
 const Test: NextPage = () => {
     const [randomWord, setRandomWord] = React.useState<TranslationResult | null>(null)
     const [answer, setAnswer] = React.useState<string>("")
     const [solved, setSolved] = React.useState<boolean>(false)
-    const [translationLanguages, setTRanslationLanguages] = React.useState<TranslationLanguages>({
-        from: languages.Spanish,
-        to: languages.English
+    const [translationLanguages, setTRanslationLanguages] = React.useState<Languages>({
+        From: LanguageCodes.SpanishSpain,
+        To: LanguageCodes.EnglishUS
     })
 
     const translateInput = React.useRef<HTMLInputElement | null>()
@@ -22,7 +24,7 @@ const Test: NextPage = () => {
 
     React.useEffect(() => {
         getNewWord()
-    }, [translationLanguages])
+    }, [])
 
     const Solution = () => {
         if (solved && randomWord) {
@@ -43,7 +45,9 @@ const Test: NextPage = () => {
                     </ul>
     
                     <Button variant="danger" onClick={() => {
-                        deleteWord(translationLanguages.from.abbreviation, randomWord.queryResult.normalizedSource)
+                        if (randomWord?.wordGuid){
+                            deleteWord(randomWord.wordGuid)
+                        }
                     }}>Delete word</Button>
                 </div>
             )
@@ -51,7 +55,7 @@ const Test: NextPage = () => {
     }
 
     const checkIfAnswerIsCorrect = (): boolean => {
-        for (const translation of randomWord?.queryResult.translations) {
+        for (const translation of randomWord?.translations) {
             if (translation.normalizedTarget == answer) {
                 return true
             }
@@ -60,15 +64,20 @@ const Test: NextPage = () => {
         return false
     }
 
-    const getNewWord = () => {
-        getRandomWord(translationLanguages.from.abbreviation)
-            .then(result => {
-                setRandomWord(result)
-                setSolved(false)
-                setAnswer("")
+    const getNewWord = async() => {
+        var word = await getRandomWord()
+        var toLanguage = word.languageCode == LanguageCodes.SpanishSpain ? LanguageCodes.EnglishUS : LanguageCodes.SpanishSpain
+        var translation = await translateWord(word.languageCode, toLanguage, word.name)
 
-                focusInput()
-            })
+        setTRanslationLanguages({
+            From: word.languageCode as LanguageCodes,
+            To: toLanguage as LanguageCodes
+        })
+        setRandomWord(translation)
+        setSolved(false)
+        setAnswer("")
+
+        focusInput()
     }
 
     return (
@@ -82,13 +91,8 @@ const Test: NextPage = () => {
             <NavbarComponent />
 
             <main style={localStyles.mainElement}>
-                <LanguageSelector
-                    setLanguages={setTRanslationLanguages}
-                    focusInput={focusInput}
-                />
-
                 <div style={localStyles.question}>
-                    How is {randomWord?.queryResult.normalizedSource} spelled in {translationLanguages.from.name}?
+                    How is {randomWord?.normalizedSource} spelled in {languageDescriptions[translationLanguages.To]}?
                 </div>
 
                 <Form onSubmit={
