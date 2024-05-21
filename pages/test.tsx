@@ -116,13 +116,13 @@ const Test: NextPage = () => {
                     <div style={localStyles.buttons}>
                         <Button
                             variant="primary"
-                            type="submit"
+                            type={!solved ? "submit" : "button"}
                             style={localStyles.checkAnswerButton}
                         >Check answer</Button>
 
                         <Button
                             variant="primary"
-                            type="button"
+                            type={solved ? "submit" : "button" }
                             onClick={getNewWord}
                         >Get new word</Button>
                     </div>
