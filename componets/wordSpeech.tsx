@@ -1,3 +1,5 @@
+export {}
+
 // import React from "react"
 // import { Language } from "./languageSelector"
 // import Sound from "../public/sound.svg"
